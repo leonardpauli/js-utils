@@ -10,7 +10,7 @@
 		"lint": "eslint --fix '{src,__tests__}/**/*.js'",
 		"lint:watch": "onchange '{src,__tests__}/**/*.js' -d 200 -w -- npm run --silent lint {{changed}}",
 		"build:watch": "npm run build -- --watch",
-		"build": "f () { ([ -d lib ] && rm -rf lib); babel src -d lib --copy-files --include-dotfiles --source-maps ${1:---retain-lines --minified}; }; f"
+		"build": "f () { ([ -d lib ] && rm -rf lib); babel src -d lib --copy-files --include-dotfiles --ignore '**/*.test.js' --source-maps ${1:---retain-lines --minified}; }; f"
 	},
 	"keywords": [],
 	"author": "Leonard Pauli <leonardpauli@me.com> (https://leonardpauli.me)",
@@ -56,5 +56,7 @@
 		"last 2 versions",
 		"not ie <= 8"
 	],
-	"dependencies": {}
+	"dependencies": {
+		"string-from-object": "^1.1.2"
+	}
 }
