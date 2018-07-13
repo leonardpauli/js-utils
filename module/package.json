@@ -13,6 +13,7 @@
 		"build": "f () { ([ -d lib ] && rm -rf lib); babel src -d lib --copy-files --include-dotfiles --ignore '**/*.test.js' --source-maps ${1:---retain-lines --minified}; }; f"
 	},
 	"keywords": [],
+	"repository": "github:leonardpauli/js-utils",
 	"author": "Leonard Pauli <leonardpauli@me.com> (https://leonardpauli.me)",
 	"private": false,
 	"license": "AGPL-3.0-or-later",
