@@ -6,8 +6,9 @@
 
 import {log} from 'string-from-object'
 import {
-	stupidIterativeObjectDependencyResolve, deepAssign, P,
+	stupidIterativeObjectDependencyResolve, P,
 	objectMap, objectMapRecursive,
+	objectKeyDotNotationResolveShallow,
 } from './object'
 import {expectDeepSubsetMatch} from './testUtils'
 
@@ -64,22 +65,6 @@ describe('P.unwrap', ()=> {
 		// log(r)
 		expect(r.expr).toBe(r.paren.expr)
 		expect(r.expr).toBe(r.lexems[0])
-	})
-})
-
-describe('deepAssign', ()=> {
-	// it('assigns', ()=> {
-	// })
-	// it('keeps ref', ()=> {
-	// })
-	it('keeps ref - circular', ()=> {
-		const ra = {b: 1}
-		const r = {a: ra}
-		const o = {a: {b: 2}}; o.a.c = o.a
-		deepAssign(r, o)
-		// log(r)
-		expect(r.a.b).toBe(2)
-		expect(r.a).toBe(ra)
 	})
 })
 
@@ -159,5 +144,48 @@ describe('expectDeepSubsetMatch', ()=> {
 		const a = {z: 5, id: 'a'}; a.r = a
 		const b = {z: 5}; b.r = b
 		expectDeepSubsetMatch({a}, {a: b})
+	})
+})
+
+describe('objectKeyDotNotationResolveShallow', ()=> {
+	it('non-dot no change', ()=> {
+		expect(objectKeyDotNotationResolveShallow({
+			a: 5,
+			b: {c: 'd'},
+		})).toEqual({
+			a: 5,
+			b: {c: 'd'},
+		})
+	})
+	it('resolves first level', ()=> {
+		expect(objectKeyDotNotationResolveShallow({
+			'a.b': 5,
+		})).toEqual({
+			a: {b: 5},
+		})
+	})
+	it('shallow', ()=> {
+		expect(objectKeyDotNotationResolveShallow({
+			a: {'b.c': 5},
+		})).toEqual({
+			a: {'b.c': 5},
+		})
+	})
+	it('extends when resolves', ()=> {
+		expect(objectKeyDotNotationResolveShallow({
+			a: {b: 1, c: 2},
+			'a.c': 3,
+		})).toEqual({
+			a: {b: 1, c: 3},
+		})
+	})
+	it('extends when not resolves', ()=> {
+		expect(objectKeyDotNotationResolveShallow({
+			'a.c': 3,
+			'a.d': 5,
+			a: {b: 1, c: 2},
+		})).toEqual({
+			a: {b: 1, c: 2, d: 5},
+		})
 	})
 })

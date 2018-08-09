@@ -7,30 +7,19 @@
 // based on rim / towards rim
 
 import {log} from 'string-from-object'
+import deepAssign from './object-deepAssign'
 
-// OBS: mutating + custom logic for pSymbol
-export const deepAssign = (target, source, taken = new Set())=> {
-	Object.keys(source).forEach(k=> {
-		const v = source[k]
-		if (v === target[k]) return
-		if (v && typeof v === 'object' && !taken.has(v)) {
-			
-			// const r = [...taken]
-			// log({k, l: taken.size, v: r[r.length-1]}, {nameExtractor: ()=> void 0})
-			// if (taken.size > 100) return null
-
-			if (v[pSymbol]) target[k] = P.unwrapRecursive(v)
-			else { taken.add(v); deepAssign(target[k] = target[k] || {}, v, taken) }
-		} else target[k] = v
-	})
-	return source
-}
+export {deepAssign}
 
 
+// helpers
 const rndstr = ()=> Math.random().toString(32).substr(2)
 
 
-const pSymbol = Symbol('objr-p')
+
+// stupidIterativeObjectDependencyResolve
+
+export const pSymbol = Symbol('objr-p')
 const blacklistKeyToSet = new Set([
 	'asymmetricMatch', '$$typeof', '@@__IMMUTABLE_ITERABLE__@@',
 	'@@__IMMUTABLE_RECORD__@@', 'nodeType', 'toJSON', 'constructor']) // TODO: warn if use? workaround all together?
@@ -69,7 +58,7 @@ const objr = (fn, {o=null, n=null} = {})=> {
 	const r = fn(p)
 	// P.unwrapRecursiveSub(o)
 
-	deepAssign(o, r)
+	deepAssign(o, r, {replaceEmptyChildren: true, replaceNonEmptyAllowed: false})
 
 	// it's not how many x.y.z there is (depthMax) (if z is set, only 1 iteration necessary),
 	// 	but how many step dependencies go, eg. a -> b -> c (two dependencies + base = 3 iterations necessary)
@@ -79,6 +68,9 @@ const objr = (fn, {o=null, n=null} = {})=> {
 
 export const stupidIterativeObjectDependencyResolve = objr
 
+
+
+// objectFilterRecursiveToMatchStructure
 
 // eg. obj = {a: 2, b: 3, c: {some: 'more', even: 'more'}, g: {bla: 5}}
 // 	structure = {a:1, c: {some:8}, g: '..', y: 9}
@@ -132,3 +124,31 @@ export const objectMapRecursive = (obj, fn, {
 					}),
 				}))(beforeMap? beforeMap(obj): obj))
 		)
+
+
+
+// objectKeyDotNotationResolve
+// TODO: properly for array
+// TODO: tests
+
+export const objectSetValueWithKeyDotNotation = (o, v, k)=>
+	k.split('.').reduce((p, k, i, all)=> {
+		const isLast = all.length-1===i
+		const value = isLast? v: p[k] || {}
+		return isLast
+			&& p[k] !== null && typeof p[k] == 'object'
+			&& value !== null && typeof value == 'object'
+			? Object.assign(p[k], value)
+			: (p[k] = value)
+	}, o)
+export const objectKeyDotNotationResolveShallow = o=>
+	Object.keys(o).reduce((t, k)=> (
+		objectSetValueWithKeyDotNotation(t, o[k], k),
+		t
+	), {})
+// TODO: fix with similar to objectMapRecursive (to handle circular, etc)
+// export const objectKeyDotNotationResolve = o=>
+// 	Object.keys(o).reduce((t, k)=> (
+// 		objectSetValueWithKeyDotNotation(t, o[k], k),
+// 		t
+// 	), {})
