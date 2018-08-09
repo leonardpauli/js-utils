@@ -67,9 +67,18 @@ describe('deepAssign', ()=> {
 		})
 
 		it('child level - not replaceNonObject', ()=> {
-			const t = {a: 1, b: {z: 5}, x: 7}
-			const s = {a: /regex/, c: /somec/}
+			const t = {a: 1} // , b: {z: 5}, x: 7
+			const s = {a: /regex/} // , c: /somec/
 			expect(()=> deepAssign(t, s, {replaceNonObject: false})).toThrow(/destructive replace non-object prevented/)
+		})
+
+		it('child level - replace empty with non plain (with not replaceNonEmptyAllowed)', ()=> {
+			const t = {a: {}}
+			const s = {a: 'hello'}
+			const r = deepAssign(t, s, {replaceNonEmptyAllowed: false})
+
+			expect(r).toBe(t)
+			expect(t.a).toBe('hello')
 		})
 	})
 
@@ -77,7 +86,7 @@ describe('deepAssign', ()=> {
 		it('appends items', ()=> {
 			const t = {a: [1, 2]}
 			const s = {a: [3, 4]}
-			const r = deepAssign(t, s)
+			const r = deepAssign(t, s, {mergeInsteadOfReplace: true})
 
 			expect(r).toBe(t)
 			expect([...t.a]).toEqual([1, 2, 3, 4])
@@ -86,7 +95,7 @@ describe('deepAssign', ()=> {
 		it('casts', ()=> {
 			const t = {a: {z: 7}}
 			const s = {a: [3, 4]}
-			const r = deepAssign(t, s)
+			const r = deepAssign(t, s, {mergeInsteadOfReplace: true})
 
 			expect(r).toBe(t)
 			expect([...t.a]).toEqual([3, 4])
@@ -100,12 +109,35 @@ describe('deepAssign', ()=> {
 			arr2.y = 8
 			const t = {a: arr}
 			const s = {a: arr2}
-			const r = deepAssign(t, s)
+			const r = deepAssign(t, s, {mergeInsteadOfReplace: true})
 
 			expect(r).toBe(t)
 			expect([...t.a]).toEqual([1, 2, 3, 4])
 			expect(t.a.z).toBe(7)
 			expect(t.a.y).toBe(8)
 		})
+
+		it('replaces', ()=> {
+			const arr = [1, 2]
+			arr.z = 7
+			const arr2 = [3, 4]
+			arr2.y = 8
+			const t = {a: arr}
+			const s = {a: arr2}
+			const r = deepAssign(t, s)
+
+			expect(r).toBe(t)
+			expect(t.a).toBe(arr2)
+		})
+	})
+
+	it('replaces empty', ()=> {
+		const v = {k: 5}
+		const t = {a: {}, b: {}}
+		const s = {a: v, b: v}
+		const r = deepAssign(t, s)
+
+		expect(t.a).toBe(v)
+		expect(t.a).toBe(t.b)
 	})
 })

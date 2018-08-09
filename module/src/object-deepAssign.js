@@ -22,6 +22,7 @@ const deepAssign = (target, source, {
 	replaceEmpty = false, // if true, use source = deepAssign(source, target, {replaceEmpty: true}), to get fixed
 	replaceEmptyChildren = true,
 	replaceNonEmptyAllowed = true,
+	mergeInsteadOfReplace = false, // for arrays
 	errorCtx,
 } = {})=> {
 
@@ -42,6 +43,9 @@ const deepAssign = (target, source, {
 
 	// handle list part + list object part
 	if (Array.isArray(source)) {
+		const replace = !mergeInsteadOfReplace
+		if (replace) return source
+
 		target.push(...source)
 		// TODO: when merging large *pure* arrays, this step is uneccessary;
 		// 	any way of detecting that no non-index properties has been added to array instance?
@@ -50,12 +54,18 @@ const deepAssign = (target, source, {
 			.reduce((o, k)=> (o[k] = source[k], o), {})
 
 		return deepAssignInner(target, sourceObjectPart, {
-			taken, replaceEmpty: replaceEmptyChildren, replaceNonEmptyAllowed, replaceNonObject, errorCtx})
+			taken, replaceEmpty: replaceEmptyChildren, replaceNonEmptyAllowed,
+			replaceNonObject, mergeInsteadOfReplace, errorCtx})
 	}
 
 	// handle object part
+
+	// const targetEmpty = isEmpty(target)
+	// if (targetEmpty && replaceEmpty) return source
+
 	return deepAssignInner(target, source, {
-		taken, replaceEmpty: replaceEmptyChildren, replaceNonEmptyAllowed, replaceNonObject, errorCtx})
+		taken, replaceEmpty: replaceEmptyChildren, replaceNonEmptyAllowed,
+		replaceNonObject, mergeInsteadOfReplace, errorCtx})
 }
 
 const deepAssignInner = (target, source, {
@@ -66,7 +76,6 @@ const deepAssignInner = (target, source, {
 	errorCtx,
 	...rest
 } = {})=> (Object.keys(source).forEach(k=> {
-	// TODO: replaceNonEmptyAllowed
 	const v = source[k]
 	if (v === target[k]) return
 
@@ -75,29 +84,32 @@ const deepAssignInner = (target, source, {
 	if (vIsCircular) return target[k] = v
 	if (!vIsObject) {
 		guardNonPlainSource({
-			target, source, replaceNonObject, replaceEmpty, replaceNonEmptyAllowed,
-			errorCtx: errorCtx && {...errorCtx, k}, ...rest})
+			target: target[k], source: v, replaceNonObject, replaceEmpty, replaceNonEmptyAllowed,
+			errorCtx: {...errorCtx, k}, ...rest})
 		return target[k] = v
 	}
 
-	// take it
-	if (v[pSymbol]) {
-		target[k] = P.unwrapRecursive(v)
-	} else {
-		taken.add(v)
-		target[k] = deepAssign(target[k] || {}, v, {
-			taken,
-			replaceNonObject,
-			replaceEmpty,
-			replaceEmptyChildren: replaceEmpty,
-			replaceNonEmptyAllowed,
-			errorCtx,
-			...rest,
-		})
-	}
+	if (v[pSymbol]) return target[k] = P.unwrapRecursive(v)
+	
+	const targetEmpty = isEmpty(target[k])
+	if (targetEmpty && replaceEmpty) return target[k] = v
 
+	taken.add(v)
+	return target[k] = deepAssign(target[k] || {}, v, {
+		taken,
+		replaceNonObject,
+		replaceEmpty,
+		replaceEmptyChildren: replaceEmpty,
+		replaceNonEmptyAllowed,
+		errorCtx,
+		...rest,
+	})
 }), target)
 
+const isEmpty = o=> (o===void 0 || o===null) || (typeof o==='object'
+	? Object.keys(o).length===0 && (!Array.isArray(o) || o.length===0)
+	: false
+)
 
 const guardNonPlainSource = ({target, source, replaceNonObject, replaceEmpty, replaceNonEmptyAllowed, errorCtx})=> {
 	if (target && typeof target !== 'object' && !replaceNonObject) throw new Error(sfo({
@@ -105,7 +117,7 @@ const guardNonPlainSource = ({target, source, replaceNonObject, replaceEmpty, re
 		replaceNonObject,
 		target, source, ...errorCtx? errorCtx: {}}, 2))
 
-	const targetEmpty = Object.keys(target).length===0 && (!Array.isArray(target) || target.length===0)
+	const targetEmpty = isEmpty(target)
 
 	if (targetEmpty && !replaceEmpty) throw new Error(sfo({
 		name: 'deepAssign: replaceEmpty prevented',

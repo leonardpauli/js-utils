@@ -1,6 +1,6 @@
 {
 	"name": "@leonardpauli/utils",
-	"version": "0.1.0",
+	"version": "0.1.2",
 	"description": "Personal JS utility library",
 	"main": "index.js",
 	"scripts": {

@@ -58,12 +58,12 @@ const objr = (fn, {o=null, n=null} = {})=> {
 	const r = fn(p)
 	// P.unwrapRecursiveSub(o)
 
-	deepAssign(o, r, {replaceEmptyChildren: true, replaceNonEmptyAllowed: false})
+	deepAssign(o, r)
 
 	// it's not how many x.y.z there is (depthMax) (if z is set, only 1 iteration necessary),
 	// 	but how many step dependencies go, eg. a -> b -> c (two dependencies + base = 3 iterations necessary)
 	// 	"maximum nr of branching on longest branch" in the dependency tree
-	return !n? o: objr(fn, {o, n: --n})
+	return !n? P.unwrapRecursive(o): objr(fn, {o, n: --n})
 }
 
 export const stupidIterativeObjectDependencyResolve = objr

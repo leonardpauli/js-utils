@@ -69,8 +69,9 @@ describe('P.unwrap', ()=> {
 })
 
 describe('stupidIterativeObjectDependencyResolve', ()=> {
+	const declarative = stupidIterativeObjectDependencyResolve
 	it('resolves', ()=> {
-		const r = stupidIterativeObjectDependencyResolve(self=> ({
+		const r = declarative(self=> ({
 			a: 1,
 			l1: {a: 2, b: 3},
 			c: {a: 2, b: 3, ssum: self.s.sum, gsum: self.c.ssum, rsum: self.c.gsum},
@@ -91,7 +92,7 @@ describe('stupidIterativeObjectDependencyResolve', ()=> {
 			a: {b: 1},
 			c: self.a,
 		})
-		const r = stupidIterativeObjectDependencyResolve(fn, {n: 1})
+		const r = declarative(fn, {n: 1})
 		// log(r)
 		expect(r).toEqual({
 			a: {b: 1},
@@ -100,13 +101,26 @@ describe('stupidIterativeObjectDependencyResolve', ()=> {
 		expect(r.a).toBe(r.c)
 	})
 	it('keeps ref - circular', ()=> {
-		const r = stupidIterativeObjectDependencyResolve(self=> ({
+		const r = declarative(self=> ({
 			a: {b: 1, c: self.a},
 		}), {n: 2})
 		// log(r)
 		expect(r.a.b).toBe(1)
 		expect(r.a.c).toBe(r.a)
 	})
+
+	it('keeps ref - outside', ()=> {
+		const v = {k: 3}
+		const r = declarative(()=> ({a: v, b: v}), {n: 0})
+		// log(r)
+		expect(r.a).toBe(r.b)
+	})
+	it('keeps ref - inside', ()=> {
+		const r = declarative(()=> { const v = {k: 3}; return {a: v, b: v} }, {n: 0})
+		// log(r)
+		expect(r.a).toBe(r.b)
+	})
+	
 })
 
 
