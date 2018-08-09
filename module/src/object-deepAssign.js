@@ -36,7 +36,9 @@ const deepAssign = (target, source, {
 
 	const sourceIsPlain = source.constructor===Object || Array.isArray(source)
 	if (!sourceIsPlain) return guardNonPlainSource({
-		target, source, replaceEmpty, replaceNonObject, replaceNonEmptyAllowed, errorCtx}) && source
+		target, source, replaceEmpty, replaceNonObject,
+		replaceNonEmptyAllowed, errorCtx,
+	}) && source
 
 	// handle list part + list object part
 	if (Array.isArray(source)) {
@@ -44,8 +46,9 @@ const deepAssign = (target, source, {
 		// TODO: when merging large *pure* arrays, this step is uneccessary;
 		// 	any way of detecting that no non-index properties has been added to array instance?
 		const sourceObjectPart = Object.keys(source)
-			.filter(k=> parseInt(k, 10)+''===k && k>=0) // only list items
+			.filter(k=> !(parseInt(k, 10)+''===k && k>=0)) // only non-list items
 			.reduce((o, k)=> (o[k] = source[k], o), {})
+
 		return deepAssignInner(target, sourceObjectPart, {
 			taken, replaceEmpty: replaceEmptyChildren, replaceNonEmptyAllowed, replaceNonObject, errorCtx})
 	}

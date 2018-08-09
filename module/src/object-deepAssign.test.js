@@ -72,4 +72,40 @@ describe('deepAssign', ()=> {
 			expect(()=> deepAssign(t, s, {replaceNonObject: false})).toThrow(/destructive replace non-object prevented/)
 		})
 	})
+
+	describe('arrays', ()=> {
+		it('appends items', ()=> {
+			const t = {a: [1, 2]}
+			const s = {a: [3, 4]}
+			const r = deepAssign(t, s)
+
+			expect(r).toBe(t)
+			expect([...t.a]).toEqual([1, 2, 3, 4])
+		})
+
+		it('casts', ()=> {
+			const t = {a: {z: 7}}
+			const s = {a: [3, 4]}
+			const r = deepAssign(t, s)
+
+			expect(r).toBe(t)
+			expect([...t.a]).toEqual([3, 4])
+			expect(t.a.z).toBe(7)
+		})
+
+		it('extends', ()=> {
+			const arr = [1, 2]
+			arr.z = 7
+			const arr2 = [3, 4]
+			arr2.y = 8
+			const t = {a: arr}
+			const s = {a: arr2}
+			const r = deepAssign(t, s)
+
+			expect(r).toBe(t)
+			expect([...t.a]).toEqual([1, 2, 3, 4])
+			expect(t.a.z).toBe(7)
+			expect(t.a.y).toBe(8)
+		})
+	})
 })
