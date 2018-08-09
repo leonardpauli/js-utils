@@ -23,6 +23,17 @@ describe('deepAssign', ()=> {
 		expect(r.a).toBe(ra)
 	})
 
+	it('keeps ref - entangle + extend (don\'t skip as circular)', ()=> {
+		const v = {k: 4}
+		const w = {k: 5}
+		const o = {a: v, b: v}
+		const r = {a: w, b: w}
+
+		deepAssign(o, r)
+		// log({o})
+		expect(o.a).toBe(o.b)
+	})
+
 	describe('replaceEmpty', ()=> {
 		const t = {a: 1}
 		const s = /regex/

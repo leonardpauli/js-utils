@@ -79,6 +79,8 @@ const deepAssignInner = (target, source, {
 	const v = source[k]
 	if (v === target[k]) return
 
+	// TODO: the logic for resolving circular might not be correct
+
 	const vIsObject = v && typeof v === 'object'
 	const vIsCircular = vIsObject && taken.has(v)
 	if (vIsCircular) return target[k] = v
@@ -94,7 +96,7 @@ const deepAssignInner = (target, source, {
 	const targetEmpty = isEmpty(target[k])
 	if (targetEmpty && replaceEmpty) return target[k] = v
 
-	taken.add(v)
+	if (target[k]) taken.add(target[k])
 	return target[k] = deepAssign(target[k] || {}, v, {
 		taken,
 		replaceNonObject,
