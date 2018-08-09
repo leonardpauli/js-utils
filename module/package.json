@@ -28,7 +28,7 @@
 		"@babel/preset-stage-2": "^7.0.0-beta.52",
 		"babel-preset-minify": "^0.3.0",
 		"@leonardpauli/babel-preset": "^0.1.0",
-		"@leonardpauli/eslint-config": "^0.1.2",
+		"@leonardpauli/eslint-config": "^0.1.3",
 		"babel-core": "^7.0.0-bridge.0",
 		"babel-eslint": "^8.2.3",
 		"babel-jest": "^22.4.3",
