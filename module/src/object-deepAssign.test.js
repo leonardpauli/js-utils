@@ -140,6 +140,38 @@ describe('deepAssign', ()=> {
 			expect(r).toBe(t)
 			expect(t.a).toBe(arr2)
 		})
+
+		it('arrayMergeAsObjectByIndex', ()=> {
+			const arr = [1, 2]
+			arr.z = 7
+			const arr2 = [3, 4]
+			arr2.y = 8
+			const arr3 = [3, 4]
+			arr3.z = 7; arr3.y = 8
+
+			const t = {a: arr}
+			const s = {a: arr2}
+			const r = deepAssign(t, s, {arrayMergeAsObjectByIndex: true})
+
+			expect(r).toBe(t)
+			expect(t.a).toBe(arr)
+			expect(arr).toEqual(arr3)
+		})
+		it('arrayMergeAsObjectByIndex - circular', ()=> {
+			const k = {kk: 5}; k.r = k
+			const z = {kk: 6}; z.r = z
+
+			// const t = {b: [k]} // a: k,
+			// const s = {b: [z]} // a: z,
+			const t = {a: k, b: [k]}
+			const s = {a: z, b: [z]}
+
+			const r = deepAssign(t, s, {arrayMergeAsObjectByIndex: true})
+			// log(r)
+			expect(r.b[0]).toBe(k)
+			expect(r.b[0].r).toBe(k)
+			expect(k.kk).toBe(z.kk)
+		})
 	})
 
 	it('replaces empty', ()=> {

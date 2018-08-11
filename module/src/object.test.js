@@ -117,8 +117,22 @@ describe('stupidIterativeObjectDependencyResolve', ()=> {
 	})
 	it('keeps ref - inside', ()=> {
 		const r = declarative(()=> { const v = {k: 3}; return {a: v, b: v} }, {n: 0})
+
 		// log(r)
 		expect(r.a).toBe(r.b)
+	})
+
+	it('keeps ref - inside array', ()=> {
+		// fixed: arrays are replaced, thereby not keeping the ref
+		// 	solution: add arrayMergeAsObjectByIndex to deepAssign and set to true
+
+		// const bodyGet = ({body})=> declarative(({b}, v = {k: 5})=> ({a: [b], b: v}), {n: 1})
+		// const r = declarative(({body})=> ({z: /z/, body: bodyGet({})}), {n: 0})
+
+		const body = ()=> declarative(({a}, v = {k: 5})=> ({a: v, b: [a]}), {n: 0})
+		const r = declarative(()=> ({body: body()}), {n: 0})
+		// log(r)
+		expect(r.body.a).toBe(r.body.b[0])
 	})
 	
 })

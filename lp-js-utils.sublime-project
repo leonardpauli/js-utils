@@ -28,19 +28,4 @@
 	"syntax_override": {
 		"# \\.js$": ["JSX", "JSX"]
 	},
-	"SublimeLinter": {
-		"chdir": "${project}",
-		"lint_mode": "background",
-		"linters": {
-			"eslint": {
-				"@disable": true,
-				"args": [
-					"-c", "${project}/../module/.eslintrc",
-				],
-			},
-			"flow": {
-				"@disable": true
-			}
-		}
-	}
 }

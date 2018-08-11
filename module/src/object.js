@@ -58,7 +58,7 @@ const objr = (fn, {o=null, n=null} = {})=> {
 	const r = fn(p)
 	// P.unwrapRecursiveSub(o)
 
-	deepAssign(o, r)
+	deepAssign(o, r, {arrayMergeAsObjectByIndex: true})
 
 	// it's not how many x.y.z there is (depthMax) (if z is set, only 1 iteration necessary),
 	// 	but how many step dependencies go, eg. a -> b -> c (two dependencies + base = 3 iterations necessary)

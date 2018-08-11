@@ -14,15 +14,44 @@ import {pSymbol, P} from './object'
 // 	only throws if onErrorThrow: true
 // 	(allows reporting multiple errors at once instead of just wasting processed data early)
 
+// helpers
+class KeyValue {
+	keys = []
+	values = []
+	set (key, value) {
+		let idx = this.keys.indexOf(key)
+		if (idx == -1) { this.keys[idx = this.keys.length] = key }
+		return this.values[idx] = value
+	}
+	get (key) {
+		const idx = this.keys.indexOf(key)
+		if (idx == -1) return void 0
+		return this.values[idx]
+	}
+}
+
+class PairKeyValue {
+	kva = new KeyValue()
+	set ([ka, kb], value) {
+		const kvb = this.kva.get(ka) || this.kva.set(ka, new KeyValue()) // TODO: optimize index lookup
+		return kvb.set(kb, value)
+	}
+	get ([ka, kb]) {
+		const kvb = this.kva.get(ka)
+		return kvb && kvb.get(kb)
+	}
+}
+
 
 // OBS: mutating + custom logic for pSymbol
 const deepAssign = (target, source, {
-	taken = new Set(),
+	taken = new PairKeyValue(),
 	replaceNonObject = true,
 	replaceEmpty = false, // if true, use source = deepAssign(source, target, {replaceEmpty: true}), to get fixed
 	replaceEmptyChildren = true,
 	replaceNonEmptyAllowed = true,
 	mergeInsteadOfReplace = false, // for arrays
+	arrayMergeAsObjectByIndex = false, // mergeInsteadOfReplace is ignored if true
 	errorCtx,
 } = {})=> {
 
@@ -43,19 +72,22 @@ const deepAssign = (target, source, {
 
 	// handle list part + list object part
 	if (Array.isArray(source)) {
-		const replace = !mergeInsteadOfReplace
+		const replace = !mergeInsteadOfReplace && !arrayMergeAsObjectByIndex
 		if (replace) return source
 
-		target.push(...source)
-		// TODO: when merging large *pure* arrays, this step is uneccessary;
-		// 	any way of detecting that no non-index properties has been added to array instance?
-		const sourceObjectPart = Object.keys(source)
-			.filter(k=> !(parseInt(k, 10)+''===k && k>=0)) // only non-list items
-			.reduce((o, k)=> (o[k] = source[k], o), {})
+		let sourceObjectPart = source
+		if (!arrayMergeAsObjectByIndex) {
+			target.push(...source)
+			// TODO: when merging large *pure* arrays, this step is uneccessary;
+			// 	any way of detecting that no non-index properties has been added to array instance?
+			sourceObjectPart = Object.keys(source)
+				.filter(k=> !(parseInt(k, 10)+''===k && k>=0)) // only non-list items
+				.reduce((o, k)=> (o[k] = source[k], o), {})
+		}
 
 		return deepAssignInner(target, sourceObjectPart, {
 			taken, replaceEmpty: replaceEmptyChildren, replaceNonEmptyAllowed,
-			replaceNonObject, mergeInsteadOfReplace, errorCtx})
+			replaceNonObject, mergeInsteadOfReplace, arrayMergeAsObjectByIndex, errorCtx})
 	}
 
 	// handle object part
@@ -65,7 +97,7 @@ const deepAssign = (target, source, {
 
 	return deepAssignInner(target, source, {
 		taken, replaceEmpty: replaceEmptyChildren, replaceNonEmptyAllowed,
-		replaceNonObject, mergeInsteadOfReplace, errorCtx})
+		replaceNonObject, mergeInsteadOfReplace, arrayMergeAsObjectByIndex, errorCtx})
 }
 
 const deepAssignInner = (target, source, {
@@ -73,6 +105,7 @@ const deepAssignInner = (target, source, {
 	replaceNonObject,
 	replaceEmpty,
 	replaceNonEmptyAllowed,
+	arrayMergeAsObjectByIndex,
 	errorCtx,
 	...rest
 } = {})=> (Object.keys(source).forEach(k=> {
@@ -82,8 +115,10 @@ const deepAssignInner = (target, source, {
 	// TODO: the logic for resolving circular might not be correct
 
 	const vIsObject = v && typeof v === 'object'
-	const vIsCircular = vIsObject && taken.has(v)
-	if (vIsCircular) return target[k] = v
+	const vIsCircular = vIsObject && taken.get([target[k], v])
+	// log({k, vIsCircular, t: target[k], v}, 4)
+	// log({ta: taken.kva.keys.slice(0, 5)}, 6)
+	if (vIsCircular) return target[k] = vIsCircular
 	if (!vIsObject) {
 		guardNonPlainSource({
 			target: target[k], source: v, replaceNonObject, replaceEmpty, replaceNonEmptyAllowed,
@@ -96,16 +131,22 @@ const deepAssignInner = (target, source, {
 	const targetEmpty = isEmpty(target[k])
 	if (targetEmpty && replaceEmpty) return target[k] = v
 
-	if (target[k]) taken.add(target[k])
-	return target[k] = deepAssign(target[k] || {}, v, {
+	const pair = [target[k], v]
+	taken.set(pair, target[k])
+	target[k] = deepAssign(target[k] || {}, v, {
 		taken,
 		replaceNonObject,
 		replaceEmpty,
 		replaceEmptyChildren: replaceEmpty,
 		replaceNonEmptyAllowed,
+		arrayMergeAsObjectByIndex,
 		errorCtx,
 		...rest,
 	})
+	// TODO: is it really necessary to add both before and after?
+	// 	(probably, but still, this whole thing is loopy... so optimise?)
+	taken.set(pair, target[k])
+	return target[k]
 }), target)
 
 const isEmpty = o=> (o===void 0 || o===null) || (typeof o==='object'
