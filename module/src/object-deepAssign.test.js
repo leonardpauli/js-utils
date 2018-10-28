@@ -3,6 +3,7 @@
 //
 // created by Leonard Pauli, aug 2018
 // copyright © Leonard Pauli 2018
+/* eslint max-nested-callbacks:0 */
 
 import {log} from 'string-from-object'
 import deepAssign from './object-deepAssign'
@@ -47,49 +48,57 @@ describe('deepAssign', ()=> {
 			expect(r).toBe(s) // replaced
 		})
 
-		it('child level', ()=> {
-			const t = {a: 1, b: {z: 5}, x: 7}
-			const s = {a: /regex/, b: /someb/, c: /somec/}
-			const r = deepAssign(t, s)
-
-			expect(r).toBe(t)
-			expect(t.a).toBe(s.a)
-			expect(t.b).toBe(s.b)
-			expect(t.c).toBe(s.c)
-			expect(t.x).toBe(7)
+		it('top level: unchanged primitive', ()=> {
+			const t = true
+			const s = true
+			expect(()=> deepAssign(t, s)).not.toThrow()
 		})
 
-		it('child level - not replaceNonEmptyAllowed', ()=> {
-			const t = {a: 1, b: {z: 5}, x: 7}
-			const s = {a: /regex/, b: /someb/, c: /somec/}
-			expect(()=> deepAssign(t, s, {replaceNonEmptyAllowed: false})).toThrow(/destructive merge prevented/)
-		})
+		describe('child level', ()=> {
+			it('basic', ()=> {
+				const t = {a: 1, b: {z: 5}, x: 7}
+				const s = {a: /regex/, b: /someb/, c: /somec/}
+				const r = deepAssign(t, s)
 
-		it('child level - not replaceEmpty', ()=> {
-			const t = {a: 1, b: {z: 5}, x: 7}
-			const s = {a: /regex/, c: /somec/}
-			expect(()=> deepAssign(t, s, {replaceEmpty: false})).not.toThrow()
+				expect(r).toBe(t)
+				expect(t.a).toBe(s.a)
+				expect(t.b).toBe(s.b)
+				expect(t.c).toBe(s.c)
+				expect(t.x).toBe(7)
+			})
 
-			const r = deepAssign(t, s, {replaceNonEmptyAllowed: true})
-			expect(r).toBe(t)
-			expect(t.a).toBe(s.a)
-			expect(t.c).toBe(s.c)
-			expect(t.x).toBe(7)
-		})
+			it('not replaceNonEmptyAllowed', ()=> {
+				const t = {a: 1, b: {z: 5}, x: 7}
+				const s = {a: /regex/, b: /someb/, c: /somec/}
+				expect(()=> deepAssign(t, s, {replaceNonEmptyAllowed: false})).toThrow(/destructive merge prevented/)
+			})
 
-		it('child level - not replaceNonObject', ()=> {
-			const t = {a: 1} // , b: {z: 5}, x: 7
-			const s = {a: /regex/} // , c: /somec/
-			expect(()=> deepAssign(t, s, {replaceNonObject: false})).toThrow(/destructive replace non-object prevented/)
-		})
+			it('not replaceEmpty', ()=> {
+				const t = {a: 1, b: {z: 5}, x: 7}
+				const s = {a: /regex/, c: /somec/}
+				expect(()=> deepAssign(t, s, {replaceEmpty: false})).not.toThrow()
 
-		it('child level - replace empty with non plain (with not replaceNonEmptyAllowed)', ()=> {
-			const t = {a: {}}
-			const s = {a: 'hello'}
-			const r = deepAssign(t, s, {replaceNonEmptyAllowed: false})
+				const r = deepAssign(t, s, {replaceNonEmptyAllowed: true})
+				expect(r).toBe(t)
+				expect(t.a).toBe(s.a)
+				expect(t.c).toBe(s.c)
+				expect(t.x).toBe(7)
+			})
 
-			expect(r).toBe(t)
-			expect(t.a).toBe('hello')
+			it('not replaceNonObject', ()=> {
+				const t = {a: 1} // , b: {z: 5}, x: 7
+				const s = {a: /regex/} // , c: /somec/
+				expect(()=> deepAssign(t, s, {replaceNonObject: false})).toThrow(/destructive replace non-object prevented/)
+			})
+
+			it('replace empty with non plain (with not replaceNonEmptyAllowed)', ()=> {
+				const t = {a: {}}
+				const s = {a: 'hello'}
+				const r = deepAssign(t, s, {replaceNonEmptyAllowed: false})
+
+				expect(r).toBe(t)
+				expect(t.a).toBe('hello')
+			})
 		})
 	})
 

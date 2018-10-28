@@ -54,6 +54,7 @@ const deepAssign = (target, source, {
 	arrayMergeAsObjectByIndex = false, // mergeInsteadOfReplace is ignored if true
 	errorCtx,
 } = {})=> {
+	if (target===source) return target
 
 	const targetNeedsCastToArray = Array.isArray(source) && !Array.isArray(target)
 	if (targetNeedsCastToArray) {
@@ -162,17 +163,20 @@ const guardNonPlainSource = ({target, source, replaceNonObject, replaceEmpty, re
 
 	const targetEmpty = isEmpty(target)
 
-	if (targetEmpty && !replaceEmpty) throw new Error(sfo({
-		name: 'deepAssign: replaceEmpty prevented',
-		sourceIsPlain: false, targetEmpty, replaceEmpty,
-		target, source, ...errorCtx? errorCtx: {}}, 2))
+	if (targetEmpty) {
+		if (!replaceEmpty) throw new Error(sfo({
+			name: 'deepAssign: replaceEmpty prevented',
+			sourceIsPlain: false, targetEmpty, replaceEmpty,
+			target, source, ...errorCtx? errorCtx: {}}, 2))
+		return true
+	}
 	
-	if (targetEmpty || (replaceEmpty && replaceNonEmptyAllowed)) return true
-
-	throw new Error(sfo({
+	if (!replaceEmpty || !replaceNonEmptyAllowed) throw new Error(sfo({
 		name: 'deepAssign: destructive merge prevented',
 		sourceIsPlain: false, targetEmpty, replaceEmpty, replaceNonEmptyAllowed,
 		target, source, ...errorCtx? errorCtx: {}}, 2))
+
+	return true
 }
 
 export default deepAssign
