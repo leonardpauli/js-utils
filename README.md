@@ -6,6 +6,9 @@ __Usage:__
 - `import x from '@leonardpauli/utils/lib/y'`
 - *(see `module/src/*` + `*.test.js` for examples)*
  
+__Note:__
+- use eg. `npm i ramda` for basic/fundamental FP helpers
+- this repo is for more specific utils
 
 ### Contribute
 
