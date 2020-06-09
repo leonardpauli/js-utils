@@ -1,3 +1,4 @@
+const {range, pad_right} = require('./misc.js')
 
 const ansi = ({
 	_esc: '\033', // \u001b \\e '\x1b['

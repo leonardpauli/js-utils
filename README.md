@@ -12,6 +12,20 @@ __NOTE, TODO:__
 - publish to npm? or always use through github?
 
 __Usage:__
+- mkdir my_app && cd "$_"
+- npm init -y
+- npm i github:leonardpauli/js-utils#jun2020
+- vi main.js
+
+		const {dlog} = require('@leonardpauli/utils/src/log.js')
+		dlog({at: 'hello', some: 222})
+
+- node main.js
+- *(then, to allow editing + debugging:)*
+- (cd .. && git clone git@github.com:leonardpauli/js-utils.git && cd js-utils && npm link)
+- npm link @leonardpauli/utils
+
+__Usage old:__
 - `npm i @leonardpauli/utils`
 - `import x from '@leonardpauli/utils/lib/y'`
 - *(see `module/src/*` + `*.test.js` for examples)*

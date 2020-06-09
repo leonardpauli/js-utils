@@ -1,4 +1,5 @@
 const {performance} = require('perf_hooks')
+const {ansi} = require('./ansi.js')
 
 const dlog = ({at, ...rest})=> {
 	const {faded: g, reset: n} = ansi
