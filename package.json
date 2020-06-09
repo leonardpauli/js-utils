@@ -1,0 +1,16 @@
+{
+	"name": "@leonardpauli/utils",
+	"version": "0.1.6",
+	"description": "Personal JS utility library",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo WIP && exit 0"
+	},
+	"keywords": [],
+	"author": "Leonard Pauli <leonardpauli@me.com> (https://leonardpauli.me)",
+	"private": false,
+	"license": "AGPL-3.0-or-later",
+	"files": [
+		"src/"
+	]
+}
