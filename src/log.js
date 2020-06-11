@@ -1,7 +1,8 @@
 const {performance} = require('perf_hooks')
 const {ansi} = require('./ansi.js')
 
-const dlog = ({at, ...rest})=> {
+const dlog = (o)=> {
+	const {at, ...rest} = typeof o==='string'?{at: o}:o
 	const {faded: g, reset: n} = ansi
 	try {
 		console.log(`${g}${new Date().toUTCString()}${n} ${at}: ${g}${JSON.stringify(rest)}${n}`)

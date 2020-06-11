@@ -1,3 +1,8 @@
+const noop = ()=> {}
+
+
+const is_object = v=> v && typeof v==='object'
+
 const obj_from_obj_list = ({list, id_key, obj = {}, handler = null})=> {
 	list.forEach((o, i)=> {
 		const id = o[id_key]
@@ -9,6 +14,41 @@ const obj_from_obj_list = ({list, id_key, obj = {}, handler = null})=> {
 }
 
 const obj_map = (o, fn)=> Object.fromEntries(Object.entries(o).map(([k, v])=> [k, fn(v, k)]))
+
+
+// warn: assumes non-circular
+// eg. ctx = {}; rest_target = obj_extract({
+// 	template: {name: (v, ctx)=> ctx.name = v, sub: {a: noop}},
+// 	source: {name: 'Anna', sub: {a: 1, b: 2}},
+// 	ctx,
+// }); console.dir({ctx, rest_target})
+const obj_extract = ({template, source, ctx, rest_target = {}})=> {
+	if (is_object(source)) {
+
+		const source_keys = Object.keys(source)
+		Object.keys(template).map(k=> {
+			xs_remove(source_keys, k)
+			const handler = template[k]
+			const v = source[k]
+
+			if (typeof handler==='function') {
+				handler(v, ctx)
+			} else if (typeof handler==='object') {
+				obj_extract({template: handler, source: v, ctx, rest_target: rest_target[k] = {}})
+				if (Object.keys(rest_target[k]).length===0) delete rest_target[k]
+			} else throw new Error(`unknown handler type (${typeof handler}, ${k})`)
+		})
+
+		source_keys.map(k=> {
+			rest_target[k] = source[k]
+		})
+
+	}
+	return rest_target
+}
+
+
+// ...
 
 const delay = ms=> new Promise(r=> setTimeout(r, ms||0))
 
@@ -59,8 +99,13 @@ const assert_string = ({at, ...rest})=> {
 
 
 module.exports = {
+	noop,
+
+	is_object,
 	obj_from_obj_list,
 	obj_map,
+	obj_extract,
+
 	delay,
 
 	range, xs_last, xs_remove, xs_sum, xs_concat,
