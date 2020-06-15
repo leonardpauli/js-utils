@@ -6,6 +6,8 @@
 // 	deinit.add(async (_, signal)=> false) // prevent exit (if non-forced, eg. )
 // 	// private: deinit.deinit(); deinit.init() // remove handlers + remove the process handlers + add them back
 
+const {xs_remove} = require('./misc.js')
+
 
 const deinit = {
 	// TODO: see https://github.com/jtlapp/node-cleanup
@@ -17,14 +19,19 @@ const deinit = {
 		// handler gets removed when execution starts
 		this.init()
 		this.handlers.push(handler)
+		return ()=> this.remove(handler)
+	},
+	remove (handler) {
+		xs_remove(this.handlers, handler)
 	},
 	notify_in_progress: 0,
 	notify (exit_code, signal) {
 		this.notify_in_progress++
 		const errors = []
 		const promises = []
+		const handlers = this.handlers.slice()
 		let cancel_exit = false, handler = null
-		while ((handler = this.handlers.shift())) {
+		while ((handler = handlers.shift())) {
 			try {
 				const res = handler(exit_code, signal)
 				if (res && res.then) promises.push(

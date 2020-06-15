@@ -1,19 +1,40 @@
 // const neo4j = require('neo4j-driver')
 const {dlog} = require('./log.js')
 const {load_action_field} = require('./server_action.js')
+const {delay} = require('./misc.js')
 
 const get = (neo4j)=> {
-	const session_setup = ({config, deinit})=> {
+	const driver_setup = (config)=> {
 		const {url, pass, user} = config
 		const driver = neo4j.driver(url, neo4j.auth.basic(user, pass))
 		
-		const session = driver.session()
-		deinit.add(()=> {
-			dlog('closing neo4j connection...')
-			return session.close()
-		})
+		// const session = driver.session()
+		// deinit.add(()=> {
+		// 	dlog('closing neo4j connection...')
+		// 	return session.close()
+		// })
 
-		return session
+		return driver
+	}
+
+	const session_use = ({deinit, driver})=> async fn=> {
+		const id = Math.random()
+		const session = driver.session()
+		dlog('session made'+id)
+		let closing = null
+		const done = async ()=> {
+			if (!closing) closing = session.close()
+			await closing
+			dlog('session closed'+id)
+			deinit.remove(done)
+		}
+		deinit.add(done)
+		
+		const res = await fn(session)
+		await delay(1000)
+
+		await done()
+		return res
 	}
 
 	const execute_to_objects = async (session, query, object={})=> {
@@ -39,7 +60,7 @@ const get = (neo4j)=> {
 		}) || []
 	}
 
-	const server_action_type_raw = ({session_get})=> ({
+	const server_action_type_raw = ({session_use})=> ({
 		title: 'neo4j_query',
 		field_list: [{
 			title: 'query',
@@ -50,10 +71,11 @@ const get = (neo4j)=> {
 			title: 'handler',
 			default: async (ctx)=> {
 				const param = ctx.action.param_get(ctx) // TODO: support async
-				const session = session_get(ctx)
 				const _query = ctx.action.query
 				const query = typeof _query === 'function'? _query(ctx): _query
-				const res_raw = await execute_to_objects(session, query, param)
+				const res_raw = await session_use(ctx)(async session=> {
+					return execute_to_objects(session, query, param)
+				})
 				const res = !ctx.action.extractor? res_raw: ctx.action.extractor(ctx, res_raw)
 				return res
 			},
@@ -68,8 +90,9 @@ const get = (neo4j)=> {
 	})
 
 	return {
+		driver_setup,
+		session_use,
 		server_action_type_raw,
-		session_setup,
 		execute_to_objects,
 	}
 }
