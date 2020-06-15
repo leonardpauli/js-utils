@@ -51,7 +51,9 @@ const get = (neo4j)=> {
 			default: async (ctx)=> {
 				const param = ctx.action.param_get(ctx) // TODO: support async
 				const session = session_get(ctx)
-				const res_raw = await execute_to_objects(session, ctx.action.query, param)
+				const _query = ctx.action.query
+				const query = typeof _query === 'function'? _query(ctx): _query
+				const res_raw = await execute_to_objects(session, query, param)
 				const res = !ctx.action.extractor? res_raw: ctx.action.extractor(ctx, res_raw)
 				return res
 			},
