@@ -1,4 +1,5 @@
 // const neo4j = require('neo4j-driver')
+const {dlog} = require('./log.js')
 const {load_action_field} = require('./server_action.js')
 
 const get = (neo4j)=> {
@@ -8,7 +9,7 @@ const get = (neo4j)=> {
 		
 		const session = driver.session()
 		deinit.add(()=> {
-			console.log('closing neo4j connection...')
+			dlog('closing neo4j connection...')
 			return session.close()
 		})
 
@@ -22,7 +23,7 @@ const get = (neo4j)=> {
 			for (const [k, v] of Object.entries(o)) {
 				if (neo4j.isInt(v)) {
 					if (!neo4j.integer.inSafeRange(v)) {
-						console.warn('execute_to_objects.uses lossy conversion to number', k, v)
+						dlog.warn({at: 'execute_to_objects.uses lossy conversion to number', k, v})
 					}
 					o[k] = neo4j.integer.toNumber(v)
 				} else if (typeof v==='object' && v) {

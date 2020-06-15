@@ -83,17 +83,27 @@ const pad_right = (s, n, char=' ')=>
 const catch_allow_code = code=> err=> err.code===code?null:Promise.reject(err)
 
 const error = ({at, ...rest})=> {
-	const reststr = Object.entries(rest)
-		.map(([k, v])=> `${k}: ${v}`).join('\n\t')
-	const post = reststr? '; \n\t'+reststr: ''
-	const err = new Error(`${at}: error${post}`)
-	Object.assign(err, rest)
+	// const reststr = Object.entries(obj_map(rest, json_to_string_or_empty))
+	// 	.map(([k, v])=> `${k}: ${v}`).join('\n\t')
+	// const post = reststr? `; \n\t${reststr}`: ''
+	const post = ''
+	const err = new Error(`${at}${post}`)
+	// Object.assign(err, rest)
+	err.data = rest
 	return err
 }
 const assert_string = ({at, ...rest})=> {
 	const type = typeof Object.values(rest)[0]
 	const expected = 'string'
 	if (type !== expected) throw error({at, ...rest, type, expected})
+}
+
+const json_to_string_or_empty = raw=> {
+	try {
+		return JSON.stringify(raw)
+	} catch (e) {
+		return void 0
+	}
 }
 
 
@@ -113,4 +123,5 @@ module.exports = {
 
 	catch_allow_code,
 	error, assert_string,
+	json_to_string_or_empty,
 }

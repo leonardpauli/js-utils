@@ -36,8 +36,16 @@ const post = ({
 			data+=chunk
 		})
 		res.on('end', ()=> {
-			res.json = ()=> JSON.parse(data)
+			res.json = async ()=> {
+				return JSON.parse(data)
+			}
 			res.text = ()=> data
+			res.ok = res.statusCode === 200
+
+			res.json_full = ()=> res.json()
+				.then(json=> res.ok? {data: json}: {error: json, status: res.statusCode})
+				.catch(error=> ({error: {message: 'json parse', error, raw: res.text()}}))
+
 			resolve(res)
 		})
 	}).catch(reject)
@@ -78,11 +86,6 @@ const http_req = ({
 			// options,
 			status,
 		})
-
-		if (status!==200) {
-			reject({status, res})
-			return
-		}
 
 		resolve(res)
 	})
