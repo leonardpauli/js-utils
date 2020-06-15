@@ -18,14 +18,14 @@ const get = (neo4j)=> {
 	}
 
 	const session_use = ({deinit, driver})=> async fn=> {
-		const id = Math.random()
+		// const id = Math.random()
 		const session = driver.session()
-		dlog('session made'+id)
+		// dlog('session made'+id)
 		let closing = null
 		const done = async ()=> {
 			if (!closing) closing = session.close()
 			await closing
-			dlog('session closed'+id)
+			// dlog('session closed'+id)
 			deinit.remove(done)
 		}
 		deinit.add(done)
