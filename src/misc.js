@@ -1,4 +1,5 @@
 const noop = ()=> {}
+const identity = v=> v
 
 
 const is_object = v=> v && typeof v==='object'
@@ -13,7 +14,8 @@ const obj_from_obj_list = ({list, id_key, obj = {}, handler = null})=> {
 	return obj
 }
 
-const obj_map = (o, fn)=> Object.fromEntries(Object.entries(o).map(([k, v])=> [k, fn(v, k)]))
+const obj_entries_map = (xs, fn)=> Object.fromEntries(xs.map(([k, v])=> [k, fn(v, k)]))
+const obj_map = (o, fn)=> obj_entries_map(Object.entries(o), fn)
 
 
 // warn: assumes non-circular
@@ -71,10 +73,124 @@ const xs_concat = xss=> {
 	for (const xs of xss) ys.push(...xs)
 	return ys
 }
+const xs_group = (xs, {
+	key_get = o=> o,
+	group_make = k=> [],
+	item_add = (group, x)=> group.push(x),
+} = {})=> {
+	const groups = new Map()
+	for (const x of xs) {
+		const k = key_get(x)
+		if (!groups.has(k)) groups.set(k, group_make(k))
+		const group = groups.get(k)
+		item_add(group, x)
+	}
+	return groups
+}
 const pad_left = (s, n, char=' ')=>
 	Array(Math.max(0, n-(s+'').length)).fill(char).join('')+s
 const pad_right = (s, n, char=' ')=>
 	s+Array(Math.max(0, n-(s+'').length)).fill(char).join('')
+
+
+
+
+// WARN: assumes non-cyclic
+const xs_overview = (xs, ctx = {unwrap: true})=> {
+	const reg = {
+		object: [],
+		array: [],
+		string: [],
+		number: [],
+		undefined: 0,
+		null: 0,
+		other: [],
+	}
+
+	// aggregate
+	for (const x of xs) {
+		const type = typeof x
+		if (x===void 0) {
+			reg['undefined'] += 1
+		} else if (x===null) {
+			reg['null'] += 1
+		} else if (type==='object') {
+			Array.isArray(x)
+				? reg.array.push(x)
+				: reg.object.push(x)
+		} else if (type==='string') {
+			reg.string.push(x)
+		} else if (type==='number') {
+			reg.number.push(x)
+		} else {
+			reg.other.push(type)
+		}
+	}
+
+	// merge
+
+	if (reg.array.length) {
+		reg.array = xs_number_overview(reg.array.map(v=> v.length))
+	}
+
+	if (reg.object.length) {
+		const obj = {}
+		for (const x of reg.object) {
+			for (const [k, v] of Object.entries(x)) {
+				if (!obj[k]) obj[k] = []
+				obj[k].push(v)
+			}
+		}		
+		reg.object = obj_map(obj, v=> xs_overview(v, ctx))
+	}
+
+	if (reg.string.length) reg.string = histogram_inverse_get(histogram_get(reg.string))
+
+	if (reg.number.length) reg.number = xs_number_overview(reg.number)
+
+	if (reg.other.length) reg.other = Object.fromEntries([
+		...histogram_inverse_get(histogram_get(reg.other))])
+
+	// extract
+	const entries = Object.entries(reg).filter(([k, v])=> {
+		if (v===0) return false
+		if (v && typeof v === 'object') {
+			return Array.isArray(v)? v.length>0
+				: Object.keys(v).length>0
+		}
+		return true
+	})
+
+	return ctx.unwrap && entries.length===1?entries[0][1]:Object.fromEntries(entries)
+}
+
+const xs_number_overview = xs=> {
+	return xs.reduce(
+		(p, n)=> ({
+			min: Math.min(p.min, n),
+			max: Math.max(p.max, n),
+			count: p.count+1,
+			sum: p.sum+n,
+		}),
+		{min: +Infinity, max: -Infinity, count: 0, sum: 0})
+}
+
+const histogram_get = (xs, {key_get = identity} = {})=> {
+	const groups = xs_group(xs, {key_get})
+	const histogram = Object.fromEntries([...groups]
+		.map(([k, v])=> [k, v.length]))
+	return histogram
+}
+
+const histogram_inverse_get = (histogram)=> {
+	const xs = Object.entries(histogram)
+	const groups = xs_group(xs, {key_get: v=> v[1]})
+	const res = Object.fromEntries([...groups]
+		.map(([count, xs])=> [count, xs.map(v=> v[0])]))
+	return res
+}
+
+
 
 
 
@@ -109,16 +225,19 @@ const json_to_string_or_empty = raw=> {
 
 
 module.exports = {
+	identity,
 	noop,
 
 	is_object,
 	obj_from_obj_list,
-	obj_map,
+	obj_entries_map, obj_map,
 	obj_extract,
 
 	delay,
 
-	range, xs_last, xs_remove, xs_sum, xs_concat,
+	range, xs_last, xs_remove, xs_sum, xs_concat, xs_group,
+	xs_overview, xs_number_overview,
+
 	pad_left, pad_right,
 
 	catch_allow_code,

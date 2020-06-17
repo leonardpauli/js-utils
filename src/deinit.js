@@ -29,9 +29,8 @@ const deinit = {
 		this.notify_in_progress++
 		const errors = []
 		const promises = []
-		const handlers = this.handlers.slice()
 		let cancel_exit = false, handler = null
-		while ((handler = handlers.shift())) {
+		while ((handler = this.handlers.shift())) {
 			try {
 				const res = handler(exit_code, signal)
 				if (res && res.then) promises.push(

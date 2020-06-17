@@ -21,7 +21,8 @@ const dlog_get = ({pre = '', log = v=> console.log(v)} = {})=> o=> {
 	}
 	const {faded: g, reset: n} = ansi
 	try {
-		log(`${g}${new Date().toUTCString()}${n} ${pre}${at}${g}: ${JSON.stringify(rest)}${error?'\n'+error.stack:''}${n}`)
+		const meta_str = JSON.stringify(rest)
+		log(`${g}${new Date().toUTCString()}${n} ${pre}${at}${g}${meta_str==='{}'?' ':': '+meta_str}${error?'\n'+error.stack:''}${n}`)
 	} catch (e) {
 		console.dir({at, ...rest})
 	}
