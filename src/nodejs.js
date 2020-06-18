@@ -1,4 +1,3 @@
-
 const xs_process_with_progress = async (xs, fn, {mod = 10, skip = 0, take = null} = {})=> {
 	const {faded: g, reset: n} = ansi
 	const itot = take===null? xs.length: Math.min(skip+take, xs.length)
@@ -16,7 +15,7 @@ const xs_process_with_progress = async (xs, fn, {mod = 10, skip = 0, take = null
 		s = st-mt*60
 		ms = mst-st*1000
 
-		return {d,h,m,s,ms}
+		return {d, h, m, s, ms}
 	}
 	const felapsed = ms=> {
 		const parts = felapsed_parts(ms)
@@ -43,8 +42,8 @@ const xs_process_with_progress = async (xs, fn, {mod = 10, skip = 0, take = null
 		const eta = isNaN(etad.getDate())? '?': etad.toUTCString()
 
 		process.stdout.write(
-			`\n${g}${d.toUTCString()}:${n} ${pad_left(''+i, `${itot}`.length)}/${itot}${xs.length!=itot?`/${xs.length}`:''} (${perc}) `+
-			`${g}(eta: ${eta}, elapsed ${elapsed})${n}.`)
+			`\n${g}${d.toUTCString()}:${n} ${pad_left(''+i, `${itot}`.length)}/${itot}${xs.length!=itot?`/${xs.length}`:''} (${perc}) `
+			+`${g}(eta: ${eta}, elapsed ${elapsed})${n}.`)
 	}
 	write_progress()
 
@@ -98,7 +97,7 @@ const spawn_monitor_last_line = (cmds, {d_rows_count_max = 2} = {})=> {
 		}
 
 		// WARN/TODO: does not treat ansi codes as units, might break it
-		const str_ellipsis = (s, n, slen=s.length)=> slen>n?s.slice(0,n-3)+'...':s
+		const str_ellipsis = (s, n, slen=s.length)=> slen>n?s.slice(0, n-3)+'...':s
 
 		const y_size_other = 0
 		const y_size_margin = 10
@@ -150,18 +149,18 @@ const spawn_monitor_last_line = (cmds, {d_rows_count_max = 2} = {})=> {
 		process.stdout.write(
 			(top_offset===0
 				? range(y_size).fill('\n').join() + ansi._go_up(y_size)
-				: ansi._go_up(top_offset))+
-			ansi._box({
+				: ansi._go_up(top_offset))
+			+ansi._box({
 				w: box.x_size_content,
 				h: box.y_size_content,
-			})+
-			ansi._go_left(box.x_size_content + box.x_padding)+
-			ansi._go_up(box.y_size_content)+
+			})
+			+ansi._go_left(box.x_size_content + box.x_padding)
+			+ansi._go_up(box.y_size_content)
 
-			content+
+			+content
 
-			ansi._go_down(box.y_size_content - content_rows)+
-			'\n'
+			+ansi._go_down(box.y_size_content - content_rows)
+			+'\n'
 		)
 		top_offset = y_size
 	}
@@ -177,7 +176,7 @@ const spawn_monitor_last_line = (cmds, {d_rows_count_max = 2} = {})=> {
 	}
 	const onerror = item=> data=> {
 		item.errors.push(data.toString())
-		update_screen()	
+		update_screen()
 	}
 	const onclose = item=> code=> {
 		item.closed = true

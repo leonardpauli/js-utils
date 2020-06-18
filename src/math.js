@@ -99,6 +99,6 @@ test([
 
 module.exports = {
 	vecStatic,
-	keepInPlace,	
+	keepInPlace,
 	interpolate, interpolate_mapped,
 }

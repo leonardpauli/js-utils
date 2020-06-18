@@ -19,8 +19,8 @@ const z = 'z'.charCodeAt(0)
 const alphabet = range(z-a).map(i=> String.fromCharCode(a+i)).join('')
 const consonant = alphabet.split('').filter(a=> vowel.indexOf(a)==-1).join('')
 
-const rnd_word = ()=> range(rnd_int(3,9)).map(i=> xs_rnd(i%2&&rnd()>0.1?vowel:consonant)).join('')
-const rnd_title = (m=5)=> range(rnd_int(2,m)).map(i=> i?rnd_word():capitalize(rnd_word())).join(' ')
+const rnd_word = ()=> range(rnd_int(3, 9)).map(i=> xs_rnd(i%2&&rnd()>0.1?vowel:consonant)).join('')
+const rnd_title = (m=5)=> range(rnd_int(2, m)).map(i=> i?rnd_word():capitalize(rnd_word())).join(' ')
 
 
 module.exports = {

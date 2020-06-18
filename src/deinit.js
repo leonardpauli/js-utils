@@ -69,7 +69,7 @@ const deinit = {
 				// redo the kill signal, but without our handler to prevent it
 				// (+ allows signal to be seen by parent process?)
 				this.deinit()
-				process.kill(process.pid, signal);
+				process.kill(process.pid, signal)
 			}
 		}
 
@@ -81,7 +81,7 @@ const deinit = {
 				// SIGUSR2: ??
 				// SIGHUP: windows: eg. on window close, ~10s before windows terminates nodejs
 				'SIGINT,SIGHUP,SIGQUIT,SIGTERM'.split(',') // see posix signals
-				.map(k=> [k, signalHandler(k)])),
+					.map(k=> [k, signalHandler(k)])),
 			uncaughtException: e=> {
 				process.stderr.write(`UncaughtException:\n${e.stack}\n`)
 				process.exit(1) // invokes (on exit)

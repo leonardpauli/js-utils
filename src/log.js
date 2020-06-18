@@ -7,7 +7,7 @@ const performance = (()=> {
 	} else {
 		try {
 			return require.call(null, 'perf_hooks')
-		} catch (e) {/*noop*/}
+		} catch (e) { /* noop */ }
 	}
 	return {now: ()=> new Date()*1}
 })()

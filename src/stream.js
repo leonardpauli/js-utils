@@ -51,7 +51,7 @@ const mapChunks = (fn, {
 const mapChunksPush = (fn, {
 	readsObj = true,
 	writesObj = true,
-	final = (_null, push, done)=> {done(null)}
+	final = (_null, push, done)=> { done(null) },
 } = {})=> new Transform({
 	writableObjectMode: readsObj,
 	readableObjectMode: writesObj,
@@ -72,7 +72,7 @@ const linesToTsvObjects = ({header = null, i = 0, skip_first = 0, take_max = nul
 			header = cs
 			return void 0
 		}
-		return header.reduce((obj, key, i)=> (obj[key] = cs[i] || null, obj), {})	
+		return header.reduce((obj, key, i)=> (obj[key] = cs[i] || null, obj), {})
 	})
 
 const csv_line_regex = /("((\\"|[^"])*)"|([^",]*))(,|$)/ig
@@ -80,13 +80,13 @@ const linesToCsvObjects = ({header = null, i = 0, skip_first = 0, take_max = nul
 	mapChunks(s=> {
 		if (i++<skip_first) return void 0
 		if (take_max && i>=take_max) return void 0
-		let cs = [...s.matchAll(csv_line_regex)].map(a=> a[2] || a[4] || '')
+		const cs = [...s.matchAll(csv_line_regex)].map(a=> a[2] || a[4] || '')
 		// TODO: parsing of \\n in "quoted \n value"?
 		if (!header) {
 			header = cs[cs.length-1]?cs:(cs.pop(), cs)
 			return void 0
 		}
-		return header.reduce((obj, key, i)=> (obj[key] = cs[i] || null, obj), {})	
+		return header.reduce((obj, key, i)=> (obj[key] = cs[i] || null, obj), {})
 	})
 
 const streamToTsvObjects = (stream, opt = {})=> stream

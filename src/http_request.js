@@ -7,8 +7,8 @@ const https = require('https')
 const queryToString = q=> Object.entries(q).map(([k, v])=> encodeURIComponent(k)+'='+(
 	Array.isArray(v)
 		? v.map(v=> encodeURIComponent(v)).join(',')
-		: encodeURIComponent(v) )
-	).join('&')
+		: encodeURIComponent(v))
+).join('&')
 
 const post = ({
 	method = 'POST',
@@ -20,7 +20,7 @@ const post = ({
 	http_req({
 		method,
 		headers: {
-			'Accept': 'application/json',
+			Accept: 'application/json',
 			...body?{
 				'Content-Type': 'application/json',
 				'Content-Length': body.length,
@@ -28,7 +28,7 @@ const post = ({
 			...headers,
 		},
 		body,
-		...rest
+		...rest,
 	}).then(res=> {
 		let data = ''
 		res.setEncoding('utf8') // ?
@@ -36,9 +36,7 @@ const post = ({
 			data+=chunk
 		})
 		res.on('end', ()=> {
-			res.json = async ()=> {
-				return JSON.parse(data)
-			}
+			res.json = async ()=> JSON.parse(data)
 			res.text = ()=> data
 			res.ok = res.statusCode === 200
 

@@ -1,7 +1,7 @@
 const {range, pad_right} = require('./misc.js')
 
 const ansi = ({
-	_esc: '\033', // \u001b \\e '\x1b['
+	_esc: '\x1b', // \u001b \\e '\x1b['
 	init () {
 		// see https://github.com/nyteshade/node_csi/blob/master/lib/csi.js
 
@@ -38,33 +38,31 @@ const ansi = ({
 
 		this._table.map((xs, i10)=> xs.map((k, i)=> { this[k] = `${csi}${i10*10+i}m` }))
 
-		this._guide = this._table.map(xs=> {
-			return xs.map((k, i)=> {
-				const v = this[k]
-				return `${v} ${pad_right(k, 18, ' ')} ${this.reset} `
-			}).join('')
-		}).join('\n')
+		this._guide = this._table.map(xs=> xs.map((k, i)=> {
+			const v = this[k]
+			return `${v} ${pad_right(k, 18, ' ')} ${this.reset} `
+		}).join('')).join('\n')
 
 		const go_ks = 'up down right left _ _ _ _ column position _ screen_clear line_clear'.split(' ')
 
 		const A = 'A'.charCodeAt(0)
 		const _go = {}
-    go_ks.map((k, i)=> _go[k] = String.fromCharCode(A+i))
-    const {screen_clear, line_clear, column, position, ...go_rest} = _go
+		go_ks.map((k, i)=> _go[k] = String.fromCharCode(A+i))
+		const {screen_clear, line_clear, column, position, ...go_rest} = _go
 
 		// (0: cursor..line.end, 1: line.start..cursor, 2: line)
 		this._line_clear = (c=2)=> `${csi}${c}${line_clear}`
 		// (0: cursor..screen.end, 1: screen.start..cursor, 2: screen)
 		this._screen_clear = (c=2)=> `${csi}${c}${screen_clear}`
 		this._go = (x, y=null)=> y!==null?`${csi}${x};${y}${position}`:`${csi}${x}${column}`
-		Object.entries(go_rest).map(([k, v])=> {this[`_go_${k}`] = (n=1)=> n==0?'':`${csi}${n}${v}`})
+		Object.entries(go_rest).map(([k, v])=> { this[`_go_${k}`] = (n=1)=> n==0?'':`${csi}${n}${v}` })
 		
 		// | ✔ | ✘ |
 		// |▸|▾|▽|▼|▶
 		// |◻|◼|☐|☑| ▪|
 		// |●|◯|◉|⦿|
 		// |❯|
-		// ❖◊■▪︎ 
+		// ❖◊■▪︎
 		// |◦|●|
 		// |✦|✧|
 
@@ -83,7 +81,7 @@ const ansi = ({
 		
 		this._box = ({w, h, dx = 0, title, variant = ds.rounded, color = this.faded})=> {
 			// console.dir({ds,r:this._go_right(0), s:range(w).map(i=> i).join('')})
-			const {x,y,a,b,c,d} = variant
+			const {x, y, a, b, c, d} = variant
 			const wm = 1
 			const {reset} = this
 			return ''
@@ -98,10 +96,10 @@ const ansi = ({
 				+this._go_down()+this._go_left(w+2*wm+2)
 				+color+c+range(w+2*wm).fill(x).join('')+d+reset
 
-				// +this._go_left(w+1+wm)
-				// +this._go_up(h)
-				// +'0123456789'
-				// +this._go_down(h)
+			// +this._go_left(w+1+wm)
+			// +this._go_up(h)
+			// +'0123456789'
+			// +this._go_down(h)
 		}
 		this._box.ds = ds
 

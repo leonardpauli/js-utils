@@ -1,4 +1,4 @@
-const noop = ()=> {/*noop*/}
+const noop = ()=> { /* noop */ }
 const identity = v=> v
 
 
@@ -93,7 +93,7 @@ const xs_remove = (xs, x)=> {
 }
 const xs_sum = xs=> {
 	let sum = 0, i = 0
-	for (let i=xs.length-1;i>=0;i--) sum+=xs[i]
+	for (let i=xs.length-1; i>=0; i--) sum+=xs[i]
 	return sum
 }
 const xs_concat = xss=> {
@@ -119,7 +119,6 @@ const pad_left = (s, n, char=' ')=>
 	Array(Math.max(0, n-(s+'').length)).fill(char).join('')+s
 const pad_right = (s, n, char=' ')=>
 	s+Array(Math.max(0, n-(s+'').length)).fill(char).join('')
-
 
 
 
@@ -171,7 +170,7 @@ const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = 
 				if (!obj[k]) obj[k] = []
 				obj[k].push(v)
 			}
-		}		
+		}
 		reg.object = obj_map(obj, v=> xs_overview(v, ctx))
 	}
 
@@ -217,16 +216,14 @@ const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = 
 		: Object.fromEntries(entries)
 }
 
-const xs_number_overview = xs=> {
-	return xs.reduce(
-		(p, n)=> ({
-			min: Math.min(p.min, n),
-			max: Math.max(p.max, n),
-			count: p.count+1,
-			sum: p.sum+n,
-		}),
-		{min: +Infinity, max: -Infinity, count: 0, sum: 0})
-}
+const xs_number_overview = xs=> xs.reduce(
+	(p, n)=> ({
+		min: Math.min(p.min, n),
+		max: Math.max(p.max, n),
+		count: p.count+1,
+		sum: p.sum+n,
+	}),
+	{min: +Infinity, max: -Infinity, count: 0, sum: 0})
 
 const histogram_get = (xs, {key_get = identity} = {})=> {
 	const groups = xs_group(xs, {key_get})
@@ -242,8 +239,6 @@ const histogram_inverse_get = (histogram)=> {
 		.map(([count, xs])=> [count, xs.map(v=> v[0])]))
 	return res
 }
-
-
 
 
 

@@ -78,7 +78,7 @@ const server_config_default_get = ({root_dir = __dirname})=> ({
 		return `http${this.ssl?'s':''}://${this.host}:${this.port}`
 	},
 
-	get base_url () {return this.url},
+	get base_url () { return this.url },
 })
 
 
@@ -103,7 +103,7 @@ const action_type_generic = ()=> ({
 		// default: async (ctx)=> {}, // required
 	}],
 	load (action) {
-		load_action_field(this, action)		
+		load_action_field(this, action)
 	},
 })
 

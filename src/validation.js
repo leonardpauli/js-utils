@@ -1,4 +1,3 @@
-
 const type_cast = {
 	pos_number: n=> typeof n==='number' && n>0?n:null,
 	many_string: o=> Array.isArray(o)?o.filter(x=> typeof x==='string'):[],

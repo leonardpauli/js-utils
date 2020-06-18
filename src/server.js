@@ -46,7 +46,7 @@ const server_new = ({
 			get_json () {
 				return new Promise((res, rej)=> {
 					let data = ''
-					this.req.on('data', chunk=> {data+=chunk})
+					this.req.on('data', chunk=> { data+=chunk })
 					this.req.on('end', ()=> {
 						try {
 							res(JSON.parse(data))
@@ -57,7 +57,7 @@ const server_new = ({
 					})
 				})
 			},
-			get url () {return new URL(scheme+'//'+base_url+this.req.url)},
+			get url () { return new URL(scheme+'//'+base_url+this.req.url) },
 			ok_json,
 		}
 
