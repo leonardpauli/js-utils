@@ -34,7 +34,7 @@ const obj_extract = ({template, source, ctx, rest_target = {}})=> {
 	if (is_object(source)) {
 
 		const source_keys = Object.keys(source)
-		Object.keys(template).map(k=> {
+		Object.keys(template).forEach(k=> {
 			xs_remove(source_keys, k)
 			const handler = template[k]
 			const v = source[k]
@@ -47,7 +47,7 @@ const obj_extract = ({template, source, ctx, rest_target = {}})=> {
 			} else throw new Error(`unknown handler type (${typeof handler}, ${k})`)
 		})
 
-		source_keys.map(k=> {
+		source_keys.forEach(k=> {
 			rest_target[k] = source[k]
 		})
 
@@ -92,7 +92,7 @@ const xs_remove = (xs, x)=> {
 	if (i>=0) xs.splice(i, 1)
 }
 const xs_sum = xs=> {
-	let sum = 0, i = 0
+	let sum = 0
 	for (let i=xs.length-1; i>=0; i--) sum+=xs[i]
 	return sum
 }
@@ -103,7 +103,7 @@ const xs_concat = xss=> {
 }
 const xs_group = (xs, {
 	key_get = o=> o,
-	group_make = k=> [],
+	group_make = _k=> [],
 	item_add = (group, x)=> group.push(x),
 } = {})=> {
 	const groups = new Map()
@@ -123,6 +123,7 @@ const pad_right = (s, n, char=' ')=>
 
 
 // WARN: assumes non-cyclic
+// eslint-disable-next-line max-statements
 const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = null}={})=> {
 	const reg = {
 		object: [],
@@ -202,7 +203,7 @@ const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = 
 		...histogram_inverse_get(histogram_get(reg.other))])
 
 	// extract
-	const entries = Object.entries(reg).filter(([k, v])=> {
+	const entries = Object.entries(reg).filter(([_k, v])=> {
 		if (v===0) return false
 		if (v && typeof v === 'object') {
 			return Array.isArray(v)? v.length>0

@@ -25,18 +25,18 @@ const toLines = ({
 const streamToString = (stream, {last = ''} = {})=> new Promise((resolve, reject)=> stream
 	.on('data', c=> last += c.toString())
 	.on('end', ()=> resolve(last))
-	.on('error', err=> reject(err))
+	.on('error', err=> reject(err)),
 )
 
 const streamReduce = (stream, aggregator, fn)=> new Promise((resolve, reject)=> stream
 	.on('data', c=> fn(aggregator, c))
 	.on('end', ()=> resolve(aggregator))
-	.on('error', err=> reject(err))
+	.on('error', err=> reject(err)),
 )
 
 const streamEnd = (stream)=> new Promise((resolve, reject)=> stream
 	.on('end', ()=> resolve())
-	.on('error', err=> reject(err))
+	.on('error', err=> reject(err)),
 )
 
 const mapChunks = (fn, {
@@ -59,7 +59,7 @@ const mapChunksPush = (fn, {
 		fn(chunk, this.push.bind(this), cb)
 	},
 	final (cb) {
-		fn(null, this.push.bind(this), cb)
+		final(null, this.push.bind(this), cb)
 	},
 })
 

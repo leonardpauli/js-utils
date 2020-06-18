@@ -6,6 +6,7 @@ const performance = (()=> {
 			return window.performance
 	} else {
 		try {
+			// eslint-disable-next-line no-useless-call
 			return require.call(null, 'perf_hooks')
 		} catch (e) { /* noop */ }
 	}

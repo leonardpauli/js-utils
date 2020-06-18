@@ -1,19 +1,22 @@
+const {ansi} = require('./ansi.js')
+const {range, pad_left, pad_right} = require('./misc.js')
+
 const xs_process_with_progress = async (xs, fn, {mod = 10, skip = 0, take = null} = {})=> {
 	const {faded: g, reset: n} = ansi
 	const itot = take===null? xs.length: Math.min(skip+take, xs.length)
 
 	const felapsed_parts = mst=> {
 		// t: total
-		st = mst/1000|0
-		mt = st/60|0
-		ht = mt/60|0
-		dt = ht/24|0
+		const st = mst/1000|0
+		const mt = st/60|0
+		const ht = mt/60|0
+		const dt = ht/24|0
 
-		d = dt
-		h = ht-dt*24
-		m = mt-ht*60
-		s = st-mt*60
-		ms = mst-st*1000
+		const d = dt
+		const h = ht-dt*24
+		const m = mt-ht*60
+		const s = st-mt*60
+		const ms = mst-st*1000
 
 		return {d, h, m, s, ms}
 	}
@@ -50,6 +53,7 @@ const xs_process_with_progress = async (xs, fn, {mod = 10, skip = 0, take = null
 	for (; i<itot; i++) {
 		const x = xs[i]
 		process.stdout.write(`${i}.`)
+		// eslint-disable-next-line no-await-in-loop
 		const res = await fn(x)
 			.then(res=> ({res}))
 			.catch(error=> ({error}))
@@ -88,7 +92,7 @@ const spawn_monitor_last_line = (cmds, {d_rows_count_max = 2} = {})=> {
 		const columns_default = 80
 		const rows_default = 100
 		const columns = process.stdout.columns || columns_default
-		const rows = process.stdout.rows || rows_default
+		const rows = process.stdout.rows || rows_default
 
 		// TODO: assumes col/rows > ~10
 		if (columns < 10 || rows < 10) {
@@ -117,7 +121,7 @@ const spawn_monitor_last_line = (cmds, {d_rows_count_max = 2} = {})=> {
 		let content_rows = 0
 		const content = items.map(item=> {
 			const status = item.closed? `${item.exit_code===0?green:red}exit(${item.exit_code})${reset}`: `${cyan}running...${reset}`
-			
+
 			const error_str_get = c=> `${yellow}error.${item.errors.length-1}${faded}: `+c+reset
 			const str_get = xs=> `${bold}${item.title}${reset}: ${xs.filter(Boolean).join(`${faded}, ${reset}`)}`
 
@@ -160,7 +164,7 @@ const spawn_monitor_last_line = (cmds, {d_rows_count_max = 2} = {})=> {
 			+content
 
 			+ansi._go_down(box.y_size_content - content_rows)
-			+'\n'
+			+'\n',
 		)
 		top_offset = y_size
 	}

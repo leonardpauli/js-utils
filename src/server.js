@@ -3,7 +3,7 @@
 const http = require('http')
 const https = require('https')
 
-const handler_not_found = ({res, headers}, next)=> {
+const handler_not_found = ({res, headers}, _next)=> {
 	res.writeHead(404, headers)
 	res.end()
 }

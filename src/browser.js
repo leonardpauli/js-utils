@@ -1,6 +1,6 @@
 const {
 	vecStatic,
-	interpolate, interpolate_mapped,
+	interpolate_mapped,
 } = require('./math.js')
 const {
 	obj_from_entries,
@@ -45,7 +45,7 @@ const pointer_new__activation_drag_el = ({rootEl, onChange, activation_drag_el =
 			this.prev.push(curr)
 			const prev_sample_size = 3
 			if (this.prev.length>prev_sample_size) this.prev.shift()
-		
+
 			const prev = this.prev[0]
 			if (prev===curr) {
 				vecStatic.set(this.vel, 0, 0)
@@ -102,7 +102,7 @@ const pointer_new__activation_drag_el = ({rootEl, onChange, activation_drag_el =
 		},
 
 		bind_trigger (el) {
-			
+
 			el.addEventListener('mousedown', this.native.mousedown)
 			el.addEventListener('touchstart', this.native.touchstart)
 
@@ -116,7 +116,7 @@ const pointer_new__activation_drag_el = ({rootEl, onChange, activation_drag_el =
 		},
 
 		bind_initiated (el) {
-			
+
 			el.addEventListener('mouseup', this.native.mouseup)
 			el.addEventListener('mousemove', this.native.mousemove)
 

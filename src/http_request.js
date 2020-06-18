@@ -7,7 +7,7 @@ const https = require('https')
 const queryToString = q=> Object.entries(q).map(([k, v])=> encodeURIComponent(k)+'='+(
 	Array.isArray(v)
 		? v.map(v=> encodeURIComponent(v)).join(',')
-		: encodeURIComponent(v))
+		: encodeURIComponent(v)),
 ).join('&')
 
 const post = ({
@@ -67,7 +67,7 @@ const http_req = ({
 		: _query
 	const path = query?`${_path}?${query}`:_path
 	const _url = __url || (base_url+path)
-	const url = typeof _url==='string'?new URL(_url):url
+	const url = typeof _url==='string'?new URL(_url):_url
 	if (url.protocol!=='https:') throw new Error('post url protocol unhandled')
 
 	const options = {

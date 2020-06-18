@@ -1,7 +1,8 @@
+/* eslint no-sync: 0 */
+
 const fs = require('fs')
 const path = require('path')
 
-const deinit = require('./deinit.js')
 const {dlog} = require('./log.js')
 const {type_cast} = require('./validation.js')
 const {obj_from_obj_list} = require('./misc.js')
@@ -37,7 +38,7 @@ const api_handler = ({
 
 const server_start = (server, {port, url})=> {
 	server.listen(port, ()=> {
-		console.log(`listening on ${url}`)
+		dlog({at: 'server.listen', url})
 	})
 }
 
@@ -85,7 +86,7 @@ const server_config_default_get = ({root_dir = __dirname})=> ({
 
 const load_action_field = (action_type, action)=> {
 	// populate defaults / field validation
-	action_type.field_list.map(f=> {
+	action_type.field_list.forEach(f=> {
 		if (!(f.title in action)) {
 			if (f.default === undefined) {
 				throw new Error(`action_type.load_action.missing required field "${f.title}"`)

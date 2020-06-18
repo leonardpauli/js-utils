@@ -6,10 +6,9 @@ const ansi = ({
 		// see https://github.com/nyteshade/node_csi/blob/master/lib/csi.js
 
 		const {_esc: esc} = this
+		const csi = `${esc}[`
 
-		const csi = '\x1b['
-		const cmd = code=> `${csi}${code}m`
-
+		// const cmd = code=> `${csi}${code}m`
 		// this._table = range(130).map(i=> {
 		// 	const code = pad_left(''+i, 2, '0')
 		// 	const _str = pad_right(` \\033[${code}m`, 10, ' ')
@@ -36,9 +35,9 @@ const ansi = ({
 
 		this._table = [fn00, fn10, fn20, fg30, bg40, fn50, __60, __70, __80, fg90, bg100]
 
-		this._table.map((xs, i10)=> xs.map((k, i)=> { this[k] = `${csi}${i10*10+i}m` }))
+		this._table.forEach((xs, i10)=> xs.forEach((k, i)=> { this[k] = `${csi}${i10*10+i}m` }))
 
-		this._guide = this._table.map(xs=> xs.map((k, i)=> {
+		this._guide = this._table.map(xs=> xs.map((k)=> {
 			const v = this[k]
 			return `${v} ${pad_right(k, 18, ' ')} ${this.reset} `
 		}).join('')).join('\n')
@@ -55,8 +54,8 @@ const ansi = ({
 		// (0: cursor..screen.end, 1: screen.start..cursor, 2: screen)
 		this._screen_clear = (c=2)=> `${csi}${c}${screen_clear}`
 		this._go = (x, y=null)=> y!==null?`${csi}${x};${y}${position}`:`${csi}${x}${column}`
-		Object.entries(go_rest).map(([k, v])=> { this[`_go_${k}`] = (n=1)=> n==0?'':`${csi}${n}${v}` })
-		
+		Object.entries(go_rest).forEach(([k, v])=> { this[`_go_${k}`] = (n=1)=> n==0?'':`${csi}${n}${v}` })
+
 		// | ✔ | ✘ |
 		// |▸|▾|▽|▼|▶
 		// |◻|◼|☐|☑| ▪|
@@ -76,10 +75,10 @@ const ansi = ({
 		const ds = Object.fromEntries(
 			Object.entries({rounded: d0, square: d1, square_bold: d2})
 				.map(([k, v])=> [k, Object.fromEntries(v.split('')
-					.map((v, i)=> [dk[i], v]))])
+					.map((v, i)=> [dk[i], v]))]),
 		)
-		
-		this._box = ({w, h, dx = 0, title, variant = ds.rounded, color = this.faded})=> {
+
+		this._box = ({w, h, dx = 0, title: _title, variant = ds.rounded, color = this.faded})=> {
 			// console.dir({ds,r:this._go_right(0), s:range(w).map(i=> i).join('')})
 			const {x, y, a, b, c, d} = variant
 			const wm = 1
@@ -91,7 +90,7 @@ const ansi = ({
 				+range(h).fill(
 					color+y+reset
 					+range(w+2*wm).fill(' ').join('')
-					+color+y+reset
+					+color+y+reset,
 				).join(this._go_down()+this._go_left(w+2*wm+2))
 				+this._go_down()+this._go_left(w+2*wm+2)
 				+color+c+range(w+2*wm).fill(x).join('')+d+reset
@@ -105,6 +104,7 @@ const ansi = ({
 
 
 		// https://stackoverflow.com/a/29497680/1054573
+		// eslint-disable-next-line no-control-regex
 		const strip_regex = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
 		this.strip = s=> s.replace(strip_regex, '')
 

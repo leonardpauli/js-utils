@@ -1,3 +1,5 @@
+const {range} = require('./misc.js')
+
 const rnd = ()=> Math.random()
 const rnd_int = (a=Number.MAX_SAFE_INTEGER, b=null)=> {
 	// ()->(int_max), (max)->(0, max), (min, max); min <= x < max

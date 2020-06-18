@@ -25,7 +25,7 @@ const keepInPlace = ({vmin = 0, vmax = 0, hardness = 0.1} = {})=> v=> {
 }
 
 
-const test = (tests)=> {
+const _test = (tests)=> {
 	const res = tests.map((fn, i)=> {
 		const [result, expected] = fn()
 		if (result!==expected) return {i, result, expected, fn: fn.toString().slice(0, 100)}

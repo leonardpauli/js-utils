@@ -17,7 +17,7 @@ const config = {
 const action_list = [{
 	title: 'server_heartbeat',
 	type: 'generic',
-	handler: async (ctx)=> ({
+	handler: async (_ctx)=> ({
 		date: new Date().toISOString(),
 	}),
 }]

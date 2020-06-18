@@ -5,6 +5,7 @@
 // 	deinit.add(async (_, signal)=> await db.close()) // might not complete on forced exit
 // 	deinit.add(async (_, signal)=> false) // prevent exit (if non-forced, eg. )
 // 	// private: deinit.deinit(); deinit.init() // remove handlers + remove the process handlers + add them back
+/* eslint no-process-exit: 0 */
 
 const {xs_remove} = require('./misc.js')
 
