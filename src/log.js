@@ -1,5 +1,16 @@
-const {performance} = require('perf_hooks')
 const {ansi} = require('./ansi.js')
+
+const performance = (()=> {
+	if (typeof window === 'object') {
+		if (window.performance)
+			return window.performance
+	} else {
+		try {
+			return require.call(null, 'perf_hooks')
+		} catch (e) {/*noop*/}
+	}
+	return {now: ()=> new Date()*1}
+})()
 
 // TODO: register for known errors + log stack for unknown
 const log_error_stack = false

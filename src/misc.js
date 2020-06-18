@@ -1,4 +1,4 @@
-const noop = ()=> {}
+const noop = ()=> {/*noop*/}
 const identity = v=> v
 
 
@@ -16,6 +16,12 @@ const obj_from_obj_list = ({list, id_key, obj = {}, handler = null})=> {
 
 const obj_entries_map = (xs, fn)=> Object.fromEntries(xs.map(([k, v])=> [k, fn(v, k)]))
 const obj_map = (o, fn)=> obj_entries_map(Object.entries(o), fn)
+const obj_map_values = (obj, fn, to={})=> {
+	for (const [k, v] of Object.entries(obj)) {
+		to[k] = fn(v)
+	}
+	return to
+}
 
 
 // warn: assumes non-circular
@@ -49,10 +55,32 @@ const obj_extract = ({template, source, ctx, rest_target = {}})=> {
 	return rest_target
 }
 
+const obj_from_entries = xs=> {
+	const obj = {}
+	for (const x of xs) {
+		const [k, v] = x
+		obj[k] = v
+	}
+	return obj
+}
+
+const enum_from_csv = s=> obj_from_entries(s.split(',').map((k, i)=> [k, i]))
+
 
 // ...
 
 const delay = ms=> new Promise(r=> setTimeout(r, ms||0))
+
+const debounce = (ms=300)=> fn=> {
+	let t = null
+	return function (...args) {
+		if (t) clearTimeout(t)
+		t = setTimeout(()=> {
+			t = null
+			fn.call(this, ...args)
+		}, ms)
+	}
+}
 
 
 // array
@@ -96,10 +124,11 @@ const pad_right = (s, n, char=' ')=>
 
 
 // WARN: assumes non-cyclic
-const xs_overview = (xs, ctx = {unwrap: true})=> {
+const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = null}={})=> {
 	const reg = {
 		object: [],
 		array: [],
+		date: [],
 		string: [],
 		number: [],
 		undefined: 0,
@@ -111,13 +140,19 @@ const xs_overview = (xs, ctx = {unwrap: true})=> {
 	for (const x of xs) {
 		const type = typeof x
 		if (x===void 0) {
+			// eslint-ignore-next-line dot-notation
 			reg['undefined'] += 1
 		} else if (x===null) {
+			// eslint-ignore-next-line dot-notation
 			reg['null'] += 1
 		} else if (type==='object') {
-			Array.isArray(x)
-				? reg.array.push(x)
-				: reg.object.push(x)
+			if (Array.isArray(x)) {
+				reg.array.push(x)
+			} else if (x instanceof Date) {
+				reg.date.push(x)
+			} else {
+				reg.object.push(x)
+			}
 		} else if (type==='string') {
 			reg.string.push(x)
 		} else if (type==='number') {
@@ -128,10 +163,6 @@ const xs_overview = (xs, ctx = {unwrap: true})=> {
 	}
 
 	// merge
-
-	if (reg.array.length) {
-		reg.array = xs_number_overview(reg.array.map(v=> v.length))
-	}
 
 	if (reg.object.length) {
 		const obj = {}
@@ -144,7 +175,27 @@ const xs_overview = (xs, ctx = {unwrap: true})=> {
 		reg.object = obj_map(obj, v=> xs_overview(v, ctx))
 	}
 
-	if (reg.string.length) reg.string = histogram_inverse_get(histogram_get(reg.string))
+	if (reg.array.length) {
+		const stats = xs_number_overview(reg.array.map(v=> v.length))
+		const array = xs_overview(xs_concat(reg.array), ctx, {unwrap_outer: false})
+		reg.array = array
+		reg.array.stats = stats
+	}
+
+	if (reg.date.length) {
+		const mss = reg.date.map(v=> v*1)
+		const non_nan = mss.filter(m=> !isNaN(m))
+		const stats = xs_number_overview(non_nan)
+		const nan_count = mss.length-non_nan.length
+		if (nan_count) stats.faulty = nan_count
+		stats.min = new Date(stats.min)
+		stats.max = new Date(stats.max)
+		delete stats.sum
+		reg.date = stats
+	}
+
+	if (reg.string.length) reg.string = histogram_inverse_get(histogram_get(
+		ctx.string_limit?reg.string.slice(0, ctx.string_limit):reg.string))
 
 	if (reg.number.length) reg.number = xs_number_overview(reg.number)
 
@@ -161,7 +212,9 @@ const xs_overview = (xs, ctx = {unwrap: true})=> {
 		return true
 	})
 
-	return ctx.unwrap && entries.length===1?entries[0][1]:Object.fromEntries(entries)
+	return (unwrap_outer!==null?unwrap_outer:ctx.unwrap) && entries.length===1
+		? entries[0][1]
+		: Object.fromEntries(entries)
 }
 
 const xs_number_overview = xs=> {
@@ -224,16 +277,72 @@ const json_to_string_or_empty = raw=> {
 
 
 
+// serializer
+
+const circular_json_serializer = (()=> {
+
+	const encode = (v, refs)=> {
+		if (!is_object(v)) return v
+		if (refs.has(v)) return {$: refs.get(v)}
+		const is_array = Array.isArray(v)
+		const flat = is_array?[]:{}
+		const ref = refs.list.push(flat)-1
+		refs.set(v, ref)
+		is_array
+			? v.forEach(v=> flat.push(encode(v, refs)))
+			: obj_map_values(v, v=> encode(v, refs), flat)
+		return {$: ref}
+	}
+
+	const decode = (v, refs)=> {
+		if (!is_object(v)) return v
+		const id = v.$
+		if (refs.taken.has(id)) return refs.taken.get(id)
+		const flat = refs[id]
+		const is_array = Array.isArray(flat)
+		const obj = is_array?[]:{}
+		refs.taken.set(id, obj)
+		is_array
+			? flat.forEach(v=> obj.push(decode(v, refs)))
+			: obj_map_values(flat, v=> decode(v, refs), obj)
+		return obj
+	}
+
+	const circular_to_json = v=> {
+		const refs = new Map() // raw: id
+		refs.list = [] // id: flat
+		const root = encode(v, refs)
+		return {v: root, refs: refs.list}
+	}
+
+	const circular_from_json = json=> {
+		const {v, refs} = json
+		refs.taken = new Map() // id: obj
+		const root = decode(v, refs)
+		return root
+	}
+
+	return {
+		circular_from_json,
+		circular_to_json,
+	}
+})()
+
+
+
 module.exports = {
 	identity,
 	noop,
 
 	is_object,
 	obj_from_obj_list,
-	obj_entries_map, obj_map,
+	obj_entries_map, obj_map, obj_map_values,
 	obj_extract,
+	obj_from_entries,
+	enum_from_csv,
 
 	delay,
+	debounce,
 
 	range, xs_last, xs_remove, xs_sum, xs_concat, xs_group,
 	xs_overview, xs_number_overview,
@@ -243,4 +352,6 @@ module.exports = {
 	catch_allow_code,
 	error, assert_string,
 	json_to_string_or_empty,
+
+	circular_json_serializer,
 }

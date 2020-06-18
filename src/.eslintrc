@@ -1,0 +1,17 @@
+{
+	"extends": "@leonardpauli/eslint-config",
+	"env": {"browser": true, "node": true},
+	"rules": {
+		"camelcase": 0,
+		"vue/prop-name-casing": 0,
+		"space-before-function-paren": 0,
+		"no-extra-parens": 0,
+		"func-names": 0,
+		"arrow-parens": 0,
+		"one-var-declaration-per-line": 0,
+		"sort-vars": 0,
+		"prefer-destructuring": 0,
+		"complexity": 0,
+		"dot-notation": 0,
+	}
+}

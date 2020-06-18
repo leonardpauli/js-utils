@@ -12,5 +12,8 @@
 	"license": "AGPL-3.0-or-later",
 	"files": [
 		"src/"
-	]
+	],
+	"devDependencies": {
+		"@leonardpauli/eslint-config": "^0.1.3"
+	}
 }

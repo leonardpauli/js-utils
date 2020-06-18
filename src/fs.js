@@ -7,8 +7,9 @@ const fs_stats = path=> fs.promises.stat(path)
 	.catch(e=> e.code==='ENOENT'?null:Promise.reject(e))
 
 const fs_json_file_read = async (filename)=> {
+	let text = null
 	try {
-		const text = await fs.promises.readFile(filename, 'utf8')
+		text = await fs.promises.readFile(filename, 'utf8')
 	} catch (e) {
 		if (e.code==='ENOENT') return void 0
 		throw e
