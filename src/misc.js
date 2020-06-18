@@ -124,7 +124,7 @@ const pad_right = (s, n, char=' ')=>
 
 // WARN: assumes non-cyclic
 // eslint-disable-next-line max-statements
-const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = null}={})=> {
+const xs_overview = (xs, ctx = {unwrap: true, string_limit: null, string_map: null}, {unwrap_outer = null}={})=> {
 	const reg = {
 		object: [],
 		array: [],
@@ -154,7 +154,7 @@ const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = 
 				reg.object.push(x)
 			}
 		} else if (type==='string') {
-			reg.string.push(x)
+			reg.string.push(ctx.string_map?ctx.string_map(x):x)
 		} else if (type==='number') {
 			reg.number.push(x)
 		} else {
@@ -199,8 +199,7 @@ const xs_overview = (xs, ctx = {unwrap: true, string_limit: 0}, {unwrap_outer = 
 
 	if (reg.number.length) reg.number = xs_number_overview(reg.number)
 
-	if (reg.other.length) reg.other = Object.fromEntries([
-		...histogram_inverse_get(histogram_get(reg.other))])
+	if (reg.other.length) reg.other = histogram_inverse_get(histogram_get(reg.other))
 
 	// extract
 	const entries = Object.entries(reg).filter(([_k, v])=> {
